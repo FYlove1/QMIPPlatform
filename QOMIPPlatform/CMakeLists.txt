@@ -34,9 +34,11 @@ qt_add_executable(QOMIPPlatform
     algorithmselectiondialog.h algorithmselectiondialog.cpp
     detachedwindow.h detachedwindow.cpp
     resourceextractor.h resourceextractor.cpp
+    exportprogressdialog.h exportprogressdialog.cpp
     Qmlres.qrc
     resources.qrc
     cameramanager.cpp cameramanager.h
+    videoexporter.cpp videoexporter.h
 )
 
 

@@ -67,27 +67,32 @@ cv::Mat AIResultVisualizer::visualizeResults(const cv::Mat& inputImage, const AI
 
 void AIResultVisualizer::drawDetectionBoxes(cv::Mat& image, const std::vector<DetectionBox>& detections)
 {
-    std::cout << "DEBUG VISUALIZER: Drawing " << detections.size() << " detection boxes" << std::endl;
-    std::cout << "DEBUG VISUALIZER: Confidence threshold: " << m_confidenceThreshold << std::endl;
+    // 每1000次调用输出一次统计
+    static int visualizeCallCount = 0;
+    visualizeCallCount++;
+    if (visualizeCallCount % 1000 == 0) {
+        std::cout << "DEBUG VISUALIZER: Drawing " << detections.size() << " detection boxes" << std::endl;
+        std::cout << "DEBUG VISUALIZER: Confidence threshold: " << m_confidenceThreshold << std::endl;
+    }
     
     int index = 1; // 从1开始编号
     
     for (const auto& detection : detections) {
-        std::cout << "DEBUG VISUALIZER: Processing detection " << index 
-                 << " - Confidence: " << detection.confidence 
-                 << ", Threshold: " << m_confidenceThreshold << std::endl;
+        // std::cout << "DEBUG VISUALIZER: Processing detection " << index
+        //          << " - Confidence: " << detection.confidence
+        //          << ", Threshold: " << m_confidenceThreshold << std::endl;
                  
-        if (detection.confidence < m_confidenceThreshold) {
-            std::cout << "DEBUG VISUALIZER: Detection " << index << " filtered by confidence" << std::endl;
-            continue;
-        }
+        // if (detection.confidence < m_confidenceThreshold) {
+        //     std::cout << "DEBUG VISUALIZER: Detection " << index << " filtered by confidence" << std::endl;
+        //     continue;
+        // }
         
         cv::Scalar color = getBoxColor(index - 1);
         
-        std::cout << "DEBUG VISUALIZER: Drawing box for detection " << index 
-                 << " at (" << detection.rect.x << ", " << detection.rect.y 
-                 << ", " << detection.rect.width << ", " << detection.rect.height 
-                 << ") with color (" << color[0] << ", " << color[1] << ", " << color[2] << ")" << std::endl;
+        // std::cout << "DEBUG VISUALIZER: Drawing box for detection " << index
+        //          << " at (" << detection.rect.x << ", " << detection.rect.y
+        //          << ", " << detection.rect.width << ", " << detection.rect.height
+        //          << ") with color (" << color[0] << ", " << color[1] << ", " << color[2] << ")" << std::endl;
         
         // 绘制检测框
         cv::rectangle(image, detection.rect, color, m_lineThickness);
@@ -113,12 +118,18 @@ void AIResultVisualizer::drawDetectionBoxes(cv::Mat& image, const std::vector<De
         cv::putText(image, labelText, labelPos, cv::FONT_HERSHEY_SIMPLEX, 
                    m_fontScale, cv::Scalar(255, 255, 255), 1, cv::LINE_AA);
         
-        std::cout << "DEBUG VISUALIZER: Successfully drew detection box " << index << std::endl;
+        // 注释掉过度的debug输出
+        // std::cout << "DEBUG VISUALIZER: Successfully drew detection box " << index << std::endl;
         
         index++;
     }
     
-    std::cout << "DEBUG VISUALIZER: Finished drawing detection boxes" << std::endl;
+    // 每1000次调用输出一次统计
+    static int finishCallCount = 0;
+    finishCallCount++;
+    if (finishCallCount % 1000 == 0) {
+        std::cout << "DEBUG VISUALIZER: Finished drawing detection boxes" << std::endl;
+    }
 }
 
 void AIResultVisualizer::drawKeyPoints(cv::Mat& image, const std::vector<KeyPointGroup>& keyPointGroups)

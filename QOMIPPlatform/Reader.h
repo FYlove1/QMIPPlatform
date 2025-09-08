@@ -114,6 +114,7 @@ private:
     cv::VideoCapture m_cap;     ///< OpenCV视频捕获对象
     int m_frameInterval = 33;   ///< 帧间隔(毫秒)，默认33ms约30fps
     QTimer *m_timer;            ///< 定时器，用于控制帧读取频率
+    int m_frameCounter = 0;     ///< 帧计数器，用于减少debug输出频率
     
     /**
      * @brief 打开输入源（文件或摄像头）

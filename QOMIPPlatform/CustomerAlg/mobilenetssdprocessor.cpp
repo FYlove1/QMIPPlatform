@@ -261,7 +261,7 @@ AIResultVisualizer::AIResult MobileNetSSDProcessor::postProcessDetections(
     
     float* data = (float*)output.data;
     int numDetections = output.size[2];
-    std::cout << "DEBUG: Processing " << numDetections << " detections" << std::endl;
+   // std::cout << "DEBUG: Processing " << numDetections << " detections" << std::endl;
     
     for (int i = 0; i < numDetections; i++) {
         float* detection = data + i * 7;
@@ -274,8 +274,8 @@ AIResultVisualizer::AIResult MobileNetSSDProcessor::postProcessDetections(
         float right = detection[5];
         float bottom = detection[6];
         
-        // 每10个检测打印一个样本用于调试
-        if (i % 10 == 0) {
+        // 每1000个检测打印一个样本用于调试
+        if (i % 1000 == 0) {
             std::cout << "DEBUG: Detection " << i << " - ClassId: " << classId 
                      << ", Confidence: " << confidence << ", Box: (" << left << ", " << top 
                      << ", " << right << ", " << bottom << ")" << std::endl;
@@ -289,40 +289,48 @@ AIResultVisualizer::AIResult MobileNetSSDProcessor::postProcessDetections(
         // 检查类别是否启用
         bool classEnabled = isClassEnabled(classId);
         if (!classEnabled) {
-            if (i < 5) { // 只打印前几个被过滤的
-                std::cout << "DEBUG: Detection " << i << " filtered by class - ClassId: " << classId 
-                         << ", PersonOnly: " << m_config.personOnly << std::endl;
-            }
+            // 注释掉过度的debug输出
+            // if (i < 5) { // 只打印前几个被过滤的
+            //     std::cout << "DEBUG: Detection " << i << " filtered by class - ClassId: " << classId 
+            //              << ", PersonOnly: " << m_config.personOnly << std::endl;
+            // }
             continue;
         }
         
-        std::cout << "DEBUG: Detection " << i << " passed filters - ClassId: " << classId 
-                 << ", Confidence: " << confidence << std::endl;
+        // 注释掉过度的debug输出
+        // std::cout << "DEBUG: Detection " << i << " passed filters - ClassId: " << classId 
+        //          << ", Confidence: " << confidence << std::endl;
         
         // 转换归一化坐标到像素坐标
         cv::Rect box = denormalizeRect(left, top, right, bottom, originalSize);
         
-        std::cout << "DEBUG: Denormalized box: (" << box.x << ", " << box.y 
-                 << ", " << box.width << ", " << box.height << ") for image size (" 
-                 << originalSize.width << "x" << originalSize.height << ")" << std::endl;
+        // 注释掉过度的debug输出
+        // std::cout << "DEBUG: Denormalized box: (" << box.x << ", " << box.y 
+        //          << ", " << box.width << ", " << box.height << ") for image size (" 
+        //          << originalSize.width << "x" << originalSize.height << ")" << std::endl;
         
         // 验证边界框
         if (box.width <= 0 || box.height <= 0 || 
             box.x < 0 || box.y < 0 || 
             box.x + box.width > originalSize.width || 
             box.y + box.height > originalSize.height) {
-            std::cout << "DEBUG: Detection " << i << " filtered by invalid box" << std::endl;
+            // std::cout << "DEBUG: Detection " << i << " filtered by invalid box" << std::endl;
             continue;
         }
         
-        std::cout << "DEBUG: Detection " << i << " passed all filters, adding to results" << std::endl;
+        // std::cout << "DEBUG: Detection " << i << " passed all filters, adding to results" << std::endl;
         
         m_boxes.push_back(box);
         m_confidences.push_back(confidence);
         m_classIds.push_back(classId);
     }
     
-    std::cout << "DEBUG: After filtering - " << m_boxes.size() << " detections remaining" << std::endl;
+    // 每1000次输出一次统计信息
+    static int filterCallCount = 0;
+    filterCallCount++;
+    if (filterCallCount % 1000 == 0) {
+        std::cout << "DEBUG: After filtering - " << m_boxes.size() << " detections remaining" << std::endl;
+    }
     
     // 应用NMS
     m_indices.clear();
@@ -369,15 +377,20 @@ AIResultVisualizer::AIResult MobileNetSSDProcessor::postProcessDetections(
             detection.className = QString("Class %1").arg(m_classIds[idx]).toStdString();
         }
         
-        std::cout << "DEBUG: Adding final detection - Class: " << detection.className 
-                 << ", Confidence: " << detection.confidence 
-                 << ", Box: (" << detection.rect.x << ", " << detection.rect.y 
-                 << ", " << detection.rect.width << ", " << detection.rect.height << ")" << std::endl;
+        // std::cout << "DEBUG: Adding final detection - Class: " << detection.className 
+        //          << ", Confidence: " << detection.confidence 
+        //          << ", Box: (" << detection.rect.x << ", " << detection.rect.y 
+        //          << ", " << detection.rect.width << ", " << detection.rect.height << ")" << std::endl;
         
         result.detections.push_back(detection);
     }
     
-    std::cout << "DEBUG: Final result contains " << result.detections.size() << " detections" << std::endl;
+    // 每100次输出一次结果统计
+    static int resultCallCount = 0;
+    resultCallCount++;
+    if (resultCallCount % 100 == 0) {
+        std::cout << "DEBUG: Final result contains " << result.detections.size() << " detections" << std::endl;
+    }
     
     return result;
 }

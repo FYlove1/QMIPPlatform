@@ -27,6 +27,15 @@ public:
     
     /* 处理新帧 */
     void processFrame(const cv::Mat& frame);
+    
+    /* 获取当前显示的处理后图像 */
+    cv::Mat getCurrentProcessedFrame() const;
+    
+    /* 获取widget名称（用于导出文件命名） */
+    QString getWidgetName() const;
+    
+    /* 获取当前widget的算法列表（用于导出） */
+    QVector<Algorithm*> getAlgorithms() const;
     FrameProcessor*     m_processor;     // 帧处理器
 private slots:
     /* 处理完成后更新显示 */
@@ -41,6 +50,7 @@ private:
     QGraphicsScene      m_scene;
     QGraphicsPixmapItem m_pixItem;
     double              m_scale = 1.0;   // 当前缩放比例
+    cv::Mat             m_currentFrame;  // 当前处理后的帧（用于导出）
     
     
 

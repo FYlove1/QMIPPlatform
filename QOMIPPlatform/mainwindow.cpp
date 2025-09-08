@@ -4,6 +4,7 @@
 #include "detachedwindow.h"
 #include "CustomerAlg/mobilenetssdprocessor.h"
 #include "resourceextractor.h"
+#include "exportprogressdialog.h"
 #include <QMessageBox>
 #include <QGraphicsPixmapItem>
 #include <QDragEnterEvent>
@@ -19,6 +20,11 @@
 #include <QFileInfo>
 #include <QSettings>
 #include <QDateTime>
+#include <QFileDialog>
+#include <QDir>
+#include <QThread>
+#include <QApplication>
+#include <QFile>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
@@ -72,6 +78,10 @@ MainWindow::MainWindow(QWidget *parent)
             ui->V_ListWidget->addItem(file);
         }
     });
+    
+    // 连接视频导出菜单项
+    connect(ui->actionExport_All_Playing_Video, &QAction::triggered, this, &MainWindow::exportAllVideos);
+    connect(ui->actionExprot_Current_Video, &QAction::triggered, this, &MainWindow::exportCurrentVideo);
 
     connect(ui->playButton, &QPushButton::clicked, this, &MainWindow::on_playButton_clicked);
     
@@ -763,4 +773,214 @@ void MainWindow::saveMobileNetSSDConfig()
     settings.setValue("font_size", m_mobilenetConfig.fontSize);
     
     settings.sync();
+}
+
+// 导出当前视频方法
+void MainWindow::exportCurrentVideo()
+{
+    QString currentSource = getCurrentVideoSource();
+    if (currentSource.isEmpty()) {
+        QMessageBox::warning(this, "警告", "当前没有视频源或当前源不是视频文件");
+        return;
+    }
+    
+    // 选择导出目录
+    QString exportDir = QFileDialog::getExistingDirectory(this, "选择导出目录", 
+        QDir::homePath(), QFileDialog::ShowDirsOnly);
+    if (exportDir.isEmpty()) {
+        return; // 用户取消
+    }
+    
+    // 只导出当前选中widget的算法
+    QStringList sources;
+    sources << currentSource;
+    performVideoExport(sources, exportDir, true); // true表示只用当前算法
+}
+
+// 导出所有算法的视频方法
+void MainWindow::exportAllVideos()
+{
+    QString currentSource = getCurrentVideoSource();
+    if (currentSource.isEmpty()) {
+        QMessageBox::warning(this, "警告", "当前没有视频源或当前源不是视频文件");
+        return;
+    }
+    
+    // 选择导出目录
+    QString exportDir = QFileDialog::getExistingDirectory(this, "选择导出目录", 
+        QDir::homePath(), QFileDialog::ShowDirsOnly);
+    if (exportDir.isEmpty()) {
+        return; // 用户取消
+    }
+    
+    // 使用当前视频源，但导出所有算法
+    QStringList sources;
+    sources << currentSource;
+    performVideoExport(sources, exportDir, false); // false表示使用所有算法
+}
+
+// 获取所有视频源
+QStringList MainWindow::getVideoSources() const
+{
+    QStringList videoSources;
+    
+    // 遍历视频列表中的所有文件
+    for (int i = 0; i < ui->V_ListWidget->count(); i++) {
+        QListWidgetItem* item = ui->V_ListWidget->item(i);
+        if (item) {
+            QString filePath = item->text();
+            QFileInfo fileInfo(filePath);
+            
+            // 检查文件是否存在且是视频格式
+            if (fileInfo.exists() && isVideoFile(filePath)) {
+                videoSources << filePath;
+            }
+        }
+    }
+    
+    return videoSources;
+}
+
+// 获取当前视频源
+QString MainWindow::getCurrentVideoSource() const
+{
+    // 检查Reader的当前源类型
+    if (m_reader->getSourceType() != Reader::SOURCE_FILE) {
+        return QString(); // 不是文件源
+    }
+    
+    QString currentPath = m_reader->getCurrentSourcePath();
+    if (currentPath.isEmpty() || !isVideoFile(currentPath)) {
+        return QString();
+    }
+    
+    return currentPath;
+}
+
+// 执行视频导出
+void MainWindow::performVideoExport(const QStringList &sources, const QString &exportDir, bool currentOnly)
+{
+    if (sources.isEmpty()) {
+        return;
+    }
+    
+    // 如果正在播放，先暂停
+    bool wasPlaying = ui->playButton->isChecked();
+    if (wasPlaying) {
+        ui->playButton->click(); // 暂停播放
+    }
+    
+    // 预先获取所有需要的算法配置，避免在导出过程中重复访问
+    QVector<WidgetExportConfig> exportConfigs;
+    
+    if (currentOnly) {
+        // 只导出当前选中widget的算法
+        int currentIndex = ui->videoWidget->currentIndex();
+        if (currentIndex >= 0 && currentIndex < m_vectorWidget.size()) {
+            BasicViewWidget* currentWidget = m_vectorWidget[currentIndex];
+            if (currentWidget) {
+                QString widgetName = currentWidget->getWidgetName();
+                QVector<Algorithm*> algorithms = currentWidget->getAlgorithms();
+                
+                // 只有当widget有算法时才添加配置
+                if (!algorithms.isEmpty()) {
+                    WidgetExportConfig config;
+                    config.widgetName = widgetName;
+                    config.algorithms = algorithms;
+                    exportConfigs.append(config);
+                }
+            }
+        }
+    } else {
+        // 预先获取所有BasicViewWidget的算法配置
+        for (BasicViewWidget* widget : m_vectorWidget) {
+            if (widget) {
+                QString widgetName = widget->getWidgetName();
+                QVector<Algorithm*> algorithms = widget->getAlgorithms();
+                
+                // 只有当widget有算法时才添加配置
+                if (!algorithms.isEmpty()) {
+                    WidgetExportConfig config;
+                    config.widgetName = widgetName;
+                    config.algorithms = algorithms;
+                    exportConfigs.append(config);
+                }
+            }
+        }
+    }
+    
+    // 创建导出进度对话框
+    ExportProgressDialog* progressDialog = new ExportProgressDialog(this);
+    progressDialog->show();
+    
+    // 为每个视频源创建导出任务
+    int totalExports = 0;
+    bool exportCancelled = false;
+    
+    connect(progressDialog, &ExportProgressDialog::cancelRequested, [&exportCancelled]() {
+        exportCancelled = true;
+    });
+    
+    for (int i = 0; i < sources.size() && !exportCancelled; i++) {
+        const QString& sourcePath = sources[i];
+        
+        // 创建VideoExporter实例
+        VideoExporter* exporter = new VideoExporter(this);
+        exporter->setSourceVideo(sourcePath);
+        
+        // 直接批量设置预处理好的配置，避免重复调用getAlgorithms()
+        exporter->setWidgetConfigs(exportConfigs);
+        
+        // 连接进度信号
+        connect(exporter, &VideoExporter::exportProgress, 
+                [progressDialog](int widgetIndex, int totalWidgets, int frameIndex, int totalFrames, const QString &currentFile) {
+                    // 计算整体进度：每个widget占总进度的一部分，当前widget内的帧进度
+                    int widgetProgress = (widgetIndex * 100) / totalWidgets;
+                    int frameProgress = (frameIndex * 100) / (totalWidgets * totalFrames);
+                    int totalProgress = widgetProgress + frameProgress;
+                    
+                    progressDialog->setValue(totalProgress);
+                    progressDialog->setCurrentFile(currentFile);
+                });
+        // 连接完成和错误信号到清理逻辑
+        connect(exporter, &VideoExporter::exportCompleted, [exporter, progressDialog, &totalExports](int count) {
+            totalExports += count;
+            if (count > 0) {
+                progressDialog->setValue(100);
+                progressDialog->setExportComplete();
+            }
+            exporter->deleteLater(); // 在完成后再删除
+        });
+        connect(exporter, &VideoExporter::exportError, [exporter, progressDialog](const QString& error) {
+            QMessageBox::critical(progressDialog, "导出错误", error);
+            exporter->deleteLater(); // 在错误后再删除
+        });
+        connect(exporter, &VideoExporter::exportCancelled, [exporter, &exportCancelled]() {
+            exportCancelled = true;
+            exporter->deleteLater(); // 在取消后再删除
+        });
+        
+        // 连接取消信号到导出器
+        connect(progressDialog, &ExportProgressDialog::cancelRequested, exporter, &VideoExporter::cancelExport);
+        
+        // 开始导出
+        qDebug() << "Starting export for source:" << sourcePath;
+        exporter->startExport(exportDir);
+    }
+    
+    if (!exportCancelled && totalExports > 0) {
+        QMessageBox::information(progressDialog, "导出完成", 
+            QString("已成功导出 %1 个处理后的视频文件到:\n%2").arg(totalExports).arg(exportDir));
+    }
+    
+    progressDialog->accept();
+}
+
+// 检查文件是否是视频格式的辅助函数
+bool MainWindow::isVideoFile(const QString &filePath) const
+{
+    QStringList videoExtensions = {"mp4", "avi", "mov", "wmv", "flv", "mkv", "webm", "m4v", "3gp", "mpg", "mpeg"};
+    QFileInfo fileInfo(filePath);
+    QString extension = fileInfo.suffix().toLower();
+    return videoExtensions.contains(extension);
 }

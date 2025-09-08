@@ -184,7 +184,12 @@ void Reader::processFrame() {
         if (!frame.empty()) {
             // 直接发送原始帧，不再创建帧组
             emit frameReady(frame);
-            qDebug() << "已读取并发送一帧";
+            
+            // 每100帧输出一次debug信息，减少输出频率
+            m_frameCounter++;
+            if (m_frameCounter % 100 == 0) {
+                qDebug() << "已读取并发送第" << m_frameCounter << "帧";
+            }
         }
     } else {
         // 处理结束情况

@@ -68,6 +68,8 @@ void BasicViewWidget::processFrame(const cv::Mat& frame)
 
 void BasicViewWidget::onFrameProcessed(const cv::Mat& result)
 {
+    // 存储当前处理后的帧用于导出
+    result.copyTo(m_currentFrame);
     setImage(result);
 }
 
@@ -114,4 +116,23 @@ void BasicViewWidget::showAlgorithmManager()
     AlgorithmDialog dialog(m_processor, this);
     dialog.setWindowTitle(QString("算法管理 - %1").arg(objectName()));
     dialog.exec();
+}
+
+cv::Mat BasicViewWidget::getCurrentProcessedFrame() const
+{
+    return m_currentFrame;
+}
+
+QString BasicViewWidget::getWidgetName() const
+{
+    QString name = objectName();
+    return name.isEmpty() ? "UnnamedWidget" : name;
+}
+
+QVector<Algorithm*> BasicViewWidget::getAlgorithms() const
+{
+    if (m_processor && m_processor->algorithmModel()) {
+        return m_processor->algorithmModel()->getAllAlgorithms();
+    }
+    return QVector<Algorithm*>();
 }

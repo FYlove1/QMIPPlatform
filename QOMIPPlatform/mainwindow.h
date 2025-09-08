@@ -16,8 +16,11 @@
 #include "CustomerAlg/mobilenetssdconfigdialog.h"
 #include "CustomerAlg/mobilenetssdprocessor.h"
 #include "algorithmselectiondialog.h"
+#include "exportprogressdialog.h"
+#include "videoexporter.h"
 
 class DetachedWindow;
+struct WidgetExportConfig;
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -47,6 +50,9 @@ private slots:
     void refreshCameras();
     void on_actionImport_Algorithm_Ai_triggered();
     void on_actionCurrent_Algorithm_triggered();
+    
+    void exportCurrentVideo();
+    void exportAllVideos();
 
 private:
     Ui::MainWindow *ui;
@@ -67,6 +73,12 @@ private:
     void initCameraUI();               // 初始化摄像头UI
     void loadMobileNetSSDConfig();     // 加载MobileNet SSD配置
     void saveMobileNetSSDConfig();     // 保存MobileNet SSD配置
+    
+    // 视频导出相关方法
+    QStringList getVideoSources() const;            // 获取所有视频源
+    QString getCurrentVideoSource() const;          // 获取当前视频源
+    void performVideoExport(const QStringList &sources, const QString &exportDir, bool currentOnly = false);
+    bool isVideoFile(const QString &filePath) const;  // 检查是否为视频文件
     
 protected:
     void dragEnterEvent(QDragEnterEvent *event) override;

@@ -193,15 +193,7 @@ QVariantMap AlgorithmListModel::getAlgorithmParams(int row) const
 
 bool AlgorithmListModel::updateAlgorithmParameters(int index, const QVariantMap &parameters)
 {
-    qDebug() << "============ [CPP-AlgorithmListModel] 参数更新流程开始 ============";
-    qDebug() << "[CPP-STEP1] 接收到的索引:" << index;
-    qDebug() << "[CPP-STEP2] 接收到的参数:";
-    
-    // 输出接收到的每个参数
-    for (auto it = parameters.begin(); it != parameters.end(); ++it) {
-        qDebug() << "[CPP-RECV-PARAM]" << it.key() << ":" << it.value() 
-                 << "(类型:" << it.value().typeName() << ")";
-    }
+    // 减少debug输出，只在出错时输出
     
     // 首先检查索引范围，避免不必要的锁获取
     if (index < 0 || index >= rowCount()) {
@@ -224,31 +216,14 @@ bool AlgorithmListModel::updateAlgorithmParameters(int index, const QVariantMap 
         // 获取算法指针
         algorithm = m_algorithms[index];
         modelIndex = createIndex(index, 0);
-        
-        // 输出更新前的参数
-        qDebug() << "[CPP-STEP3] 更新前的参数:";
-        QVariantMap oldParams = algorithm->getParameters();
-        for (auto it = oldParams.begin(); it != oldParams.end(); ++it) {
-            qDebug() << "[CPP-OLD-PARAM]" << it.key() << ":" << it.value();
-        }
     }
     
     // 锁外更新参数
     try {
         algorithm->setParameters(parameters);
         
-        // 获取并输出更新后的参数
-        QVariantMap newParams = algorithm->getParameters();
-        qDebug() << "[CPP-STEP4] 更新后的参数:";
-        for (auto it = newParams.begin(); it != newParams.end(); ++it) {
-            qDebug() << "[CPP-NEW-PARAM]" << it.key() << ":" << it.value();
-        }
-        
         // 发送数据变更信号
         emit dataChanged(modelIndex, modelIndex, {ParamsRole});
-        qDebug() << "[CPP-STEP5] dataChanged信号已发送";
-        qDebug() << "============ [CPP-AlgorithmListModel] 参数更新流程结束 ============";
-
         return true;
     }
     catch (const std::exception& e) {

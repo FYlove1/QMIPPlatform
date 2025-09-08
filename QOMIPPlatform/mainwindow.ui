@@ -121,6 +121,7 @@
     <addaction name="actionOpen_Dir_for_Video"/>
     <addaction name="separator"/>
     <addaction name="actionExport_All_Playing_Video"/>
+    <addaction name="actionExprot_Current_Video"/>
    </widget>
    <widget class="QMenu" name="menuAlgorithmSetting">
     <property name="title">
@@ -186,6 +187,11 @@
   <action name="actionImport_Algorithm_Ai">
    <property name="text">
     <string>Import Algorithm（Ai）</string>
+   </property>
+  </action>
+  <action name="actionExprot_Current_Video">
+   <property name="text">
+    <string>Exprot Current Video</string>
    </property>
   </action>
  </widget>

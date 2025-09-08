@@ -32,14 +32,14 @@ QList<CameraManager::CameraInfo> CameraManager::scanCameras()
             // 测试摄像头是否真的可用
             if (testCamera(info.index)) {
                 m_cameras.append(info);
-                qDebug() << "Found camera:" << info.name << "at index" << info.index;
+                // 减少debug输出频率，只输出摄像头总数
             }
         }
     }
     
     // 如果Qt方法没找到摄像头，尝试OpenCV枚举（这部分代码保持不变）
     if (m_cameras.isEmpty()) {
-        qDebug() << "No cameras found via Qt, trying OpenCV enumeration...";
+        // qDebug() << "No cameras found via Qt, trying OpenCV enumeration...";
         
         // 尝试打开前10个摄像头索引
         for (int i = 0; i < 10; ++i) {
@@ -50,7 +50,7 @@ QList<CameraManager::CameraInfo> CameraManager::scanCameras()
                 info.description = QString("OpenCV Camera Index %1").arg(i);
                 info.isAvailable = true;
                 m_cameras.append(info);
-                qDebug() << "Found camera via OpenCV at index" << i;
+                // 减少OpenCV摄像头发现的debug输出
             }
         }
     }
@@ -63,9 +63,15 @@ QList<CameraManager::CameraInfo> CameraManager::scanCameras()
         defaultCamera.description = "System default camera (index 0)";
         defaultCamera.isAvailable = false; // 标记为可能不可用
         m_cameras.append(defaultCamera);
-        qDebug() << "No cameras detected, adding default camera placeholder";
+        // qDebug() << "No cameras detected, adding default camera placeholder";
     }
     
+    // 每100次调用输出一次统计
+    static int scanCallCount = 0;
+    scanCallCount++;
+    if (scanCallCount % 100 == 0) {
+        qDebug() << "摄像头扫描完成，找到" << m_cameras.size() << "个摄像头";
+    }
     emit camerasUpdated(m_cameras);
     emit scanCompleted();
     
@@ -110,7 +116,7 @@ bool CameraManager::testCamera(int index)
         cap.release();
         
         if (canRead && !testFrame.empty()) {
-            qDebug() << "Camera" << index << "is available and working";
+            // 摄像头测试成功，减少debug输出
             return true;
         }
     }
