@@ -1,0 +1,12 @@
+<RCC>
+    <qresource prefix="/">
+        <file>Qml/AlgorithmModelListView.qml</file>
+        <file>Qml/ListViewDelegation.qml</file>
+        <file>Qml/ParameterEditDialog.qml</file>
+        <file>Qml/BooleanInputComponent.qml</file>
+        <file>Qml/DescriptionComponent.qml</file>
+        <file>Qml/NoParamsComponent.qml</file>
+        <file>Qml/NumberInputComponent.qml</file>
+        <file>Qml/TextInputComponent.qml</file>
+    </qresource>
+</RCC>

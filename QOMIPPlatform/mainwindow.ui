@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>893</width>
+    <height>541</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,3">
+    <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>GroupBox</string>
+      </property>
+      <widget class="QPushButton" name="playButton">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>370</y>
+         <width>80</width>
+         <height>26</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Begin</string>
+       </property>
+      </widget>
+      <widget class="QTabWidget" name="tabWidget_2">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>50</y>
+         <width>201</width>
+         <height>311</height>
+        </rect>
+       </property>
+       <property name="currentIndex">
+        <number>1</number>
+       </property>
+       <widget class="QWidget" name="picture_tab">
+        <attribute name="title">
+         <string>Picture</string>
+        </attribute>
+        <widget class="QListWidget" name="p_ListWidget">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>11</y>
+           <width>181</width>
+           <height>261</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="video_tab">
+        <attribute name="title">
+         <string>Video</string>
+        </attribute>
+        <widget class="QListWidget" name="V_ListWidget">
+         <property name="geometry">
+          <rect>
+           <x>10</x>
+           <y>10</y>
+           <width>181</width>
+           <height>261</height>
+          </rect>
+         </property>
+        </widget>
+       </widget>
+       <widget class="QWidget" name="camera_tab">
+        <attribute name="title">
+         <string>Camera</string>
+        </attribute>
+       </widget>
+      </widget>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="frame">
+      <property name="frameShape">
+       <enum>QFrame::Shape::StyledPanel</enum>
+      </property>
+      <property name="frameShadow">
+       <enum>QFrame::Shadow::Raised</enum>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_2">
+       <item>
+        <widget class="QTabWidget" name="videoWidget">
+         <property name="currentIndex">
+          <number>-1</number>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>893</width>
+     <height>27</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menufile">
+    <property name="title">
+     <string>file</string>
+    </property>
+    <addaction name="actionOpen_Dir_for_images"/>
+    <addaction name="actionOpen_Dir_for_Video"/>
+    <addaction name="separator"/>
+    <addaction name="actionExport_All_Playing_Video"/>
+   </widget>
+   <widget class="QMenu" name="menuAlgorithmSetting">
+    <property name="title">
+     <string>AlgorithmSetting</string>
+    </property>
+    <addaction name="actiontemplate"/>
+    <addaction name="actionCurrent_Algorithm"/>
+    <addaction name="actionImport_Algorithm_Ai"/>
+   </widget>
+   <widget class="QMenu" name="menuWidget_Control">
+    <property name="title">
+     <string>Widget Control</string>
+    </property>
+    <addaction name="actionDelete_Current_Widget"/>
+    <addaction name="actionAdd"/>
+    <addaction name="actionSeparation_Current_Widget"/>
+   </widget>
+   <addaction name="menufile"/>
+   <addaction name="menuAlgorithmSetting"/>
+   <addaction name="menuWidget_Control"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionOpen_Dir_for_images">
+   <property name="text">
+    <string>Open Dir for images</string>
+   </property>
+  </action>
+  <action name="actionOpen_Dir_for_Video">
+   <property name="text">
+    <string>Open Dir for Video</string>
+   </property>
+  </action>
+  <action name="actionExport_All_Playing_Video">
+   <property name="text">
+    <string>Export All Playing Video</string>
+   </property>
+  </action>
+  <action name="actiontemplate">
+   <property name="text">
+    <string>template</string>
+   </property>
+  </action>
+  <action name="actionCurrent_Algorithm">
+   <property name="text">
+    <string>Current Algorithm Way</string>
+   </property>
+  </action>
+  <action name="actionDelete_Current_Widget">
+   <property name="text">
+    <string>Delete Current Widget</string>
+   </property>
+  </action>
+  <action name="actionAdd">
+   <property name="text">
+    <string> Add New Widget</string>
+   </property>
+  </action>
+  <action name="actionSeparation_Current_Widget">
+   <property name="text">
+    <string>Separation Current Widget</string>
+   </property>
+  </action>
+  <action name="actionImport_Algorithm_Ai">
+   <property name="text">
+    <string>Import Algorithm（Ai）</string>
+   </property>
+  </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
